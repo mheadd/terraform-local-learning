@@ -5,7 +5,7 @@ This project demonstrates Infrastructure as Code using Terraform with local deve
 ## Prerequisites
 - Kind cluster running
 - LocalStack running
-- All tools installed per the setup guide
+- All tools installed per the [setup guide](setup-guide.md)
 
 ## Setup Instructions
 

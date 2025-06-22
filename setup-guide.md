@@ -4,7 +4,6 @@ FYSA - I'm using a Macbook Air with an M2 chip and 16 GB of memory. In lieu of D
 
 ### Terraform
 ```bash
-```Using Homebrew (recommended for M2 Mac)
 brew install terraform
 
 # Verify installation
