@@ -1,0 +1,4 @@
+project_name = "my-local-app"
+environment  = "dev"
+app_replicas = 2
+localstack_enabled = true

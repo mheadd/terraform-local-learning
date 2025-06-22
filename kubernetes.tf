@@ -1,0 +1,124 @@
+resource "kubernetes_namespace" "app" {
+  metadata {
+    name = "${var.project_name}-${var.environment}"
+    labels = local.common_labels
+  }
+}
+
+# ConfigMap for application configuration
+resource "kubernetes_config_map" "app_config" {
+  metadata {
+    name      = "${var.project_name}-config"
+    namespace = kubernetes_namespace.app.metadata[0].name
+    labels    = local.common_labels
+  }
+
+  data = {
+    app_name     = var.project_name
+    environment  = var.environment
+    s3_bucket    = aws_s3_bucket.app_bucket.bucket
+    dynamodb_table = aws_dynamodb_table.app_table.name
+    sqs_queue_url  = aws_sqs_queue.app_queue.url
+  }
+}
+
+# Secret for AWS credentials (even though we're using LocalStack)
+resource "kubernetes_secret" "aws_credentials" {
+  metadata {
+    name      = "${var.project_name}-aws-creds"
+    namespace = kubernetes_namespace.app.metadata[0].name
+    labels    = local.common_labels
+  }
+
+  data = {
+    aws_access_key_id     = base64encode("test")
+    aws_secret_access_key = base64encode("test")
+    aws_region           = base64encode(var.aws_region)
+    aws_endpoint_url     = base64encode("http://host.docker.internal:4566")
+  }
+
+  type = "Opaque"
+}
+
+# Deployment for our demo application
+resource "kubernetes_deployment" "app" {
+  metadata {
+    name      = "${var.project_name}-app"
+    namespace = kubernetes_namespace.app.metadata[0].name
+    labels    = local.common_labels
+  }
+
+  spec {
+    replicas = var.app_replicas
+
+    selector {
+      match_labels = {
+        app = "${var.project_name}-app"
+      }
+    }
+
+    template {
+      metadata {
+        labels = merge(local.common_labels, {
+          app = "${var.project_name}-app"
+        })
+      }
+
+      spec {
+        container {
+          image = "nginx:alpine"
+          name  = "app"
+
+          port {
+            container_port = 80
+          }
+
+          env_from {
+            config_map_ref {
+              name = kubernetes_config_map.app_config.metadata[0].name
+            }
+          }
+
+          env_from {
+            secret_ref {
+              name = kubernetes_secret.aws_credentials.metadata[0].name
+            }
+          }
+
+          resources {
+            limits = {
+              cpu    = "100m"
+              memory = "128Mi"
+            }
+            requests = {
+              cpu    = "50m"
+              memory = "64Mi"
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+# Service to expose the application
+resource "kubernetes_service" "app" {
+  metadata {
+    name      = "${var.project_name}-service"
+    namespace = kubernetes_namespace.app.metadata[0].name
+    labels    = local.common_labels
+  }
+
+  spec {
+    selector = {
+      app = "${var.project_name}-app"
+    }
+
+    port {
+      port        = 80
+      target_port = 80
+    }
+
+    type = "NodePort"
+  }
+}

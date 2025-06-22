@@ -1,0 +1,29 @@
+output "kubernetes_namespace" {
+  description = "Kubernetes namespace created"
+  value       = kubernetes_namespace.app.metadata[0].name
+}
+
+output "kubernetes_service_nodeport" {
+  description = "NodePort for accessing the application"
+  value       = kubernetes_service.app.spec[0].port[0].node_port
+}
+
+output "s3_bucket_name" {
+  description = "S3 bucket name"
+  value       = aws_s3_bucket.app_bucket.bucket
+}
+
+output "dynamodb_table_name" {
+  description = "DynamoDB table name"
+  value       = aws_dynamodb_table.app_table.name
+}
+
+output "sqs_queue_url" {
+  description = "SQS queue URL"
+  value       = aws_sqs_queue.app_queue.url
+}
+
+output "application_url" {
+  description = "URL to access the application (after port-forward)"
+  value       = "http://localhost:8080"
+}
