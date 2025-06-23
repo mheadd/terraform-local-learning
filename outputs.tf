@@ -27,3 +27,13 @@ output "application_url" {
   description = "URL to access the application (after port-forward)"
   value       = "http://localhost:8080"
 }
+
+output "sns_topic_arn" {
+  description = "SNS topic ARN"
+  value       = aws_sns_topic.app_notifications.arn
+}
+
+output "lambda_function_name" {
+  description = "Lambda function name"
+  value       = aws_lambda_function.data_processor.function_name
+}

@@ -29,8 +29,12 @@ provider "aws" {
   s3_use_path_style          = true
   
   endpoints {
-    s3       = "http://localhost:4566"
-    dynamodb = "http://localhost:4566"
-    sqs      = "http://localhost:4566"
+    s3         = "http://localhost:4566"
+    dynamodb   = "http://localhost:4566"
+    sqs        = "http://localhost:4566"
+    sns        = "http://localhost:4566"       # Add explicit SNS endpoint
+    lambda     = "http://localhost:4566"       # Add explicit Lambda endpoint
+    iam        = "http://localhost:4566"       # Add explicit IAM endpoint
+    logs       = "http://localhost:4566"       # Add explicit CloudWatch logs endpoint
   }
 }
