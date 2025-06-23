@@ -126,3 +126,108 @@ resource "kubernetes_service" "app" {
     type = "NodePort"
   }
 }
+# Horizontal Pod Autoscaler
+resource "kubernetes_horizontal_pod_autoscaler_v2" "app_hpa" {
+  metadata {
+    name      = "${var.project_name}-hpa"
+    namespace = kubernetes_namespace.app.metadata[0].name
+    labels    = local.common_labels
+  }
+
+  spec {
+    scale_target_ref {
+      api_version = "apps/v1"
+      kind        = "Deployment"
+      name        = kubernetes_deployment.app.metadata[0].name
+    }
+
+    min_replicas = 2
+    max_replicas = 10
+
+    metric {
+      type = "Resource"
+      resource {
+        name = "cpu"
+        target {
+          type                = "Utilization"
+          average_utilization = 70
+        }
+      }
+    }
+  }
+}
+
+# Ingress for external access
+resource "kubernetes_ingress_v1" "app_ingress" {
+  metadata {
+    name      = "${var.project_name}-ingress"
+    namespace = kubernetes_namespace.app.metadata[0].name
+    labels    = local.common_labels
+    annotations = {
+      "kubernetes.io/ingress.class" = "nginx"
+    }
+  }
+
+  spec {
+    rule {
+      host = "my-local-app.local"
+      http {
+        path {
+          path      = "/"
+          path_type = "Prefix"
+          backend {
+            service {
+              name = kubernetes_service.app.metadata[0].name
+              port {
+                number = 80
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+# # PersistentVolumeClaim for storage
+# resource "kubernetes_persistent_volume_claim" "app_storage" {
+#   metadata {
+#     name      = "${var.project_name}-storage"
+#     namespace = kubernetes_namespace.app.metadata[0].name
+#     labels    = local.common_labels
+#   }
+
+#   spec {
+#     access_modes = ["ReadWriteOnce"]
+#     resources {
+#       requests = {
+#         storage = "1Gi"
+#       }
+#     }
+#   }
+# }
+
+# Job for one-time tasks
+resource "kubernetes_job_v1" "database_migration" {
+  metadata {
+    name      = "${var.project_name}-db-migration"
+    namespace = kubernetes_namespace.app.metadata[0].name
+    labels    = local.common_labels
+  }
+
+  spec {
+    template {
+      metadata {
+        labels = local.common_labels
+      }
+      spec {
+        container {
+          name    = "migration"
+          image   = "busybox"
+          command = ["sh", "-c", "echo 'Running database migration...' && sleep 10 && echo 'Migration complete!'"]
+        }
+        restart_policy = "Never"
+      }
+    }
+  }
+}

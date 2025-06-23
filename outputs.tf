@@ -37,3 +37,12 @@ output "lambda_function_name" {
   description = "Lambda function name"
   value       = aws_lambda_function.data_processor.function_name
 }
+output "ingress_host" {
+  description = "Ingress host for the application"
+  value       = "my-local-app.local"
+}
+
+# output "persistent_volume_claim" {
+#   description = "PVC name for application storage"
+#   value       = kubernetes_persistent_volume_claim.app_storage.metadata[0].name
+# }
