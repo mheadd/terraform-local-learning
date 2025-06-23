@@ -19,6 +19,10 @@ resource "kubernetes_config_map" "app_config" {
     s3_bucket    = aws_s3_bucket.app_bucket.bucket
     dynamodb_table = aws_dynamodb_table.app_table.name
     sqs_queue_url  = aws_sqs_queue.app_queue.url
+    app_version    = "1.0.0"
+    debug_mode     = "true"
+    max_connections = "100"
+    log_level      = "info"
   }
 }
 
